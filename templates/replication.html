@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Репликация</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        .background-image {
+            background-image: url('http://drive.google.com/uc?export=view&id=1wcm2fkGVWWD3Fw_DG3ydkiCDETty65uo');
+            background-size: cover;
+            background-repeat: no-repeat;
+            height: 100vh;
+        }   
+    </style>
+    <style>
+        table {
+            font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+            font-size: 14px;
+            border-radius: 10px;
+            border-spacing: 0;
+            text-align: center;
+        }
+        th {
+            background: #BCEBDD;
+            color: white;
+            text-shadow: 0 1px 1px #2D2020;
+            padding: 10px 20px;
+        }
+        th, td {
+            border-style: solid;
+            border-width: 0 1px 1px 0;
+            border-color: white;
+        }
+        th:first-child, td:first-child {
+            text-align: left;
+        }
+        th:first-child {
+            border-top-left-radius: 10px;
+        }
+        th:last-child {
+            border-top-right-radius: 10px;
+            border-right: none;
+        }
+        td {
+            padding: 10px 20px;
+            background: #F8E391;
+        }
+        tr:last-child td:first-child {
+            border-radius: 0 0 0 10px;
+        }
+        tr:last-child td:last-child {
+            border-radius: 0 0 10px 0;
+        }
+        tr td:last-child {
+            border-right: none;
+        }
+        /*table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }*/
+        .active {
+            background: #73ff73; /*#F8E391;*/
+        }
+        .not_active {
+            background: #fc5656;/* #E1E3E0;*/
+        }
+    </style>
+
+</head>
+<body>
+    <div class="background-image">
+<h1>
+    Данные о репликации
+</h1>
+<table>
+    <tr>
+        {% for header in headers %}
+        <th>
+            {{ header }}
+        </th>
+        {% endfor %}
+    </tr>
+    {% for row in data %}
+    <tr>
+        {% for column in row.data %}
+        <td class="{{ row.active }}">{{ column }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+</div>
+</body>
+
+</html>

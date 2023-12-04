@@ -1,22 +1,46 @@
 from django.contrib import admin
-
+from django.forms import ModelForm
 # Register your models here.
 
 from .models import Bookings, Employees, Filials, Guests, Jobs, Livings, RoomTypes, RoomTypesNames, Rooms, Statuses, \
     Work
 
+class BookingsInline(admin.TabularInline):
+    model = Bookings
+    extra = 1
+
+class LivingsInline(admin.StackedInline):
+    model = Livings
+    extra = 1
+
+class WorkInline(admin.TabularInline):
+    model = Work
+    extra = 1
+
+
 @admin.register(Employees)
 class EmployeesAdmin(admin.ModelAdmin):
     list_display = ("e_name", "e_gender", "e_born", "e_passp", "e_phone","e_addr")
     list_filter = ["e_gender"]
+    search_fields = ["e_name", "e_passp", "e_phone", "e_addr"]
 
+    inlines = [
+        WorkInline
+    ]
     ordering = ['e_name']
     list_per_page = 15
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj:
+            form.base_fields["e_id"].disabled = True
+        return form
 
 @admin.register(Bookings)
 class BookingsAdmin(admin.ModelAdmin):
     list_display = ("guest_name", "rt", "b_arr_date", "b_dep_date", "status")
     list_filter = ['rt', 'st']
+    search_fields = []
 
     def guest_name(self, obj):
         return str(obj.g)
@@ -27,6 +51,10 @@ class BookingsAdmin(admin.ModelAdmin):
     def status(self, obj):
         return obj.st.st_name
 
+    inlines = [
+        LivingsInline
+    ]
+
     guest_name.short_description = 'Гость'
     guest_name.admin_order_field = 'g__g_name'
     room_type.short_description = 'Тип номера'
@@ -36,6 +64,12 @@ class BookingsAdmin(admin.ModelAdmin):
     ordering = ['g__g_name', '-b_arr_date']
     list_per_page = 30
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj:
+            form.base_fields["b_id"].disabled = True
+        return form
+
 @admin.register(Filials)
 class FilialsAdmin(admin.ModelAdmin):
     list_display = ['f_name', 'f_addr', 'f_phone', 'f_mail', 'f_open']
@@ -44,13 +78,28 @@ class FilialsAdmin(admin.ModelAdmin):
     ordering = ['f_name']
     list_per_page = 15
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj:
+            form.base_fields["f_id"].disabled = True
+        return form
+
 @admin.register(Guests)
 class GuestsAdmin(admin.ModelAdmin):
     list_display = ("g_name", "g_gender", "g_born", "g_passp", "g_phone")
     list_filter = ["g_gender"]
 
+    inlines = [
+        BookingsInline, LivingsInline
+    ]
     ordering = ['g_name']
     list_per_page = 30
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj:
+            form.base_fields["g_id"].disabled = True
+        return form
 
 @admin.register(Jobs)
 class JobsAdmin(admin.ModelAdmin):
@@ -58,6 +107,12 @@ class JobsAdmin(admin.ModelAdmin):
 
     ordering = ["j_name"]
     list_per_page = 30
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj:
+            form.base_fields["j_id"].disabled = True
+        return form
 
 @admin.register(Livings)
 class LivingsAdmin(admin.ModelAdmin):
@@ -78,6 +133,12 @@ class LivingsAdmin(admin.ModelAdmin):
     ordering = ["-l_arr_date"]
     list_per_page = 30
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj:
+            form.base_fields["l_id"].disabled = True
+        return form
+
 
 @admin.register(RoomTypesNames)
 class RoomTypesNamesAdmin(admin.ModelAdmin):
@@ -85,6 +146,12 @@ class RoomTypesNamesAdmin(admin.ModelAdmin):
 
     ordering = ['rtn_name']
     list_per_page = 15
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj:
+            form.base_fields["rtn_id"].disabled = True
+        return form
 
 @admin.register(Rooms)
 class RoomsAdmin(admin.ModelAdmin):
@@ -105,12 +172,24 @@ class RoomsAdmin(admin.ModelAdmin):
     ordering = ['f__f_name', 'r_id']
     list_per_page = 30
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj:
+            form.base_fields["r_id"].disabled = True
+        return form
+
 @admin.register(Statuses)
 class StatusesAdmin(admin.ModelAdmin):
     list_display = ('st_name', )
 
     ordering = ["st_name"]
     list_per_page = 15
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj:
+            form.base_fields["st_id"].disabled = True
+        return form
 
 @admin.register(Work)
 class WorkAdmin(admin.ModelAdmin):
@@ -135,6 +214,12 @@ class WorkAdmin(admin.ModelAdmin):
     job_name.short_description = 'Должность'
     job_name.admin_order_field = 'j__j_name'
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj:
+            form.base_fields["w_id"].disabled = True
+        return form
+
 @admin.register(RoomTypes)
 class RoomTypesAdmin(admin.ModelAdmin):
     list_display = ("room_type_name", "filial_name", "rt_price", "rt_capacity")
@@ -155,5 +240,8 @@ class RoomTypesAdmin(admin.ModelAdmin):
     filial_name.short_description = 'Филиал'
     filial_name.admin_order_field = 'f__f_name'
 
-#admin.site.register(
-#    [Bookings, Guests, Livings, Rooms])
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj:
+            form.base_fields["rt_id"].disabled = True
+        return form
