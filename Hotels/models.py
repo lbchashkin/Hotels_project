@@ -116,7 +116,12 @@ class Livings(models.Model):
     l_dep_date = models.DateTimeField(blank=True, null=True, verbose_name='Дата выселения')
 
     def __str__(self):
-        return self.g.g_name + " " + self.rt.rtn.rtn_name + f" {self.l_arr_date.strftime('%d.%m.%Y')} - {self.l_dep_date.strftime('%d.%m.%Y')}"
+        s = self.g.g_name + " " + self.rt.rtn.rtn_name
+        if self.l_arr_date:
+            s += f" {self.l_arr_date.strftime('%d.%m.%Y')}"
+        if self.l_dep_date:
+            s +=  f" - {self.l_dep_date.strftime('%d.%m.%Y')}"
+        return s
 
     class Meta:
         verbose_name = 'проживание'
