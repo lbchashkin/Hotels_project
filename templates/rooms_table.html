@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Занятость номеров</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        .free {
+            background: #73ff73; /*#F8E391;*/
+        }
+        .busy {
+            background: #fc5656;/* #E1E3E0;*/
+    </style>
+</head>
+<body>
+<h1>Занятость номеров</h1>
+<table>
+    <tr>
+        {% for header in headers %}
+        <th>
+            {{ header }}
+        </th>
+        {% endfor %}
+    </tr>
+    {% for roomname, row in data %}
+    <tr>
+        <th>{{ roomname }}</th>
+        {% for column in row %}
+            <td class="{{ column }}"></td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+</body>
+</html>

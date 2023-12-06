@@ -19,6 +19,20 @@ from django.urls import path
 from Hotels import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('replication/', views.replication)
+    path('', views.main),
+    path('reports/', views.reports),
+    path('reports/actual_emp/', views.actual_emp),
+    path('reports/fired_emp/', views.fired_emp),
+    path('reports/empty_today/', views.empty_today),
+    path('reports/replication/', views.replication),
+    path('reports/bookings5/', views.bookings5),
+    path('reports/livings5/', views.livings5),
+    path('reports/reg_stat/', views.reg_stat),
+    path('reports/livings_stat/', views.livings_stat),
+    path('reports/long_livings/', views.long_livings),
+    path('reports/early_dep/', views.early_dep),
+    path('reports/profit/', views.profit),
+    path('reports/arr_dep_stat/', views.arr_dep_stat),
+    path('reports/rooms_table/', views.rooms_table),
+    path('admin/', admin.site.urls)
 ]

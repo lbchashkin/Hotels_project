@@ -40,7 +40,7 @@ class EmployeesAdmin(admin.ModelAdmin):
 class BookingsAdmin(admin.ModelAdmin):
     list_display = ("guest_name", "rt", "b_arr_date", "b_dep_date", "status")
     list_filter = ['rt', 'st']
-    search_fields = []
+    search_fields = ["g__g_name", "rt__rtn__rtn_name", "rt__f__f_name"]
 
     def guest_name(self, obj):
         return str(obj.g)
@@ -77,6 +77,7 @@ class FilialsAdmin(admin.ModelAdmin):
 
     ordering = ['f_name']
     list_per_page = 15
+    search_fields = ["f_name", "f_addr", "f_phone"]
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
@@ -94,6 +95,8 @@ class GuestsAdmin(admin.ModelAdmin):
     ]
     ordering = ['g_name']
     list_per_page = 30
+    search_fields = ["g_name", "g_phone", "g_passp"]
+
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
@@ -107,6 +110,7 @@ class JobsAdmin(admin.ModelAdmin):
 
     ordering = ["j_name"]
     list_per_page = 30
+    search_fields = ["j_name"]
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
@@ -118,6 +122,10 @@ class JobsAdmin(admin.ModelAdmin):
 class LivingsAdmin(admin.ModelAdmin):
     list_display = ("guest_name", "booking", "rt", "l_arr_date", "l_dep_date")
     list_filter = ["rt"]
+    search_fields = ["g__g_name", "rt__rtn__rtn_name"]
+
+    list_per_page = 30
+    ordering = ["-l_arr_date"]
 
     def guest_name(self, obj):
         return obj.g.g_name
@@ -130,8 +138,6 @@ class LivingsAdmin(admin.ModelAdmin):
     booking.short_description = 'Бронирование'
     booking.admin_order_field = 'b'
 
-    ordering = ["-l_arr_date"]
-    list_per_page = 30
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
@@ -146,6 +152,7 @@ class RoomTypesNamesAdmin(admin.ModelAdmin):
 
     ordering = ['rtn_name']
     list_per_page = 15
+    search_fields = ["rtn_name"]
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
@@ -157,6 +164,8 @@ class RoomTypesNamesAdmin(admin.ModelAdmin):
 class RoomsAdmin(admin.ModelAdmin):
     list_display = ['r_id', 'room_type', 'r_floor', 'filial_name']
     list_filter = ['f', 'rt__rtn']
+
+    search_fields = ["r_id", "rt__rtn__rtn_name", "f__f_name"]
 
     def filial_name(self, obj):
         return obj.f.f_name
@@ -182,6 +191,7 @@ class RoomsAdmin(admin.ModelAdmin):
 class StatusesAdmin(admin.ModelAdmin):
     list_display = ('st_name', )
 
+    search_fields = ["st_name"]
     ordering = ["st_name"]
     list_per_page = 15
 
@@ -194,7 +204,8 @@ class StatusesAdmin(admin.ModelAdmin):
 @admin.register(Work)
 class WorkAdmin(admin.ModelAdmin):
     list_display = ("emp_name", "filial_name", "job_name", "e_hired", "e_fired")
-    list_filter = ("f", )
+    list_filter = ("f", "j")
+    search_fields = ["e__e_name", "f__f_name", "j__j_name"]
 
     def emp_name(self, obj):
         return str(obj.e)
@@ -224,6 +235,7 @@ class WorkAdmin(admin.ModelAdmin):
 class RoomTypesAdmin(admin.ModelAdmin):
     list_display = ("room_type_name", "filial_name", "rt_price", "rt_capacity")
     list_filter = ["f", "rtn"]
+    search_fields = ["f__f_name", "rtn__rtn_name"]
 
     def room_type_name(self, obj):
         return obj.rtn.rtn_name
