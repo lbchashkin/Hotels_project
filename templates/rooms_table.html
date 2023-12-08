@@ -17,6 +17,14 @@
 </head>
 <body>
 <h1>Занятость номеров</h1>
+<a href="/reports">К списку отчётов</a>
+<p>
+    <form name="form" method="GET">
+        <input type="month" name="month_year" value="{{ year_value }}-{{ month_value }}">
+        <input type="submit" value="Построить отчёт">
+    </form>
+</p>
+<h3>{{ month }}</h3>
 <table>
     <tr>
         {% for header in headers %}
