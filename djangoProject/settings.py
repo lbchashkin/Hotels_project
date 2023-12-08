@@ -48,6 +48,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'Hotels.routers.MainRouter.RouterMiddleWare'
 ]
 
 ROOT_URLCONF = 'djangoProject.urls'
@@ -84,12 +85,20 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432',
     },
-    'hotels': {
+    'hotels_main': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'Hotels',
         'USER': 'leonid',
         'PASSWORD': 'Leonid2001',
         'HOST': 'localhost',
+        'PORT': '5432',
+    },
+    'hotels_1': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'Hotels',
+        'USER': 'web_user',
+        'PASSWORD': 'password',
+        'HOST': '200:70ca:2633:2c26:8c8d:3907:58a6:16cf',
         'PORT': '5432',
     }
 }
