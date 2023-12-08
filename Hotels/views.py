@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseServerError
-from django.db import connections
+from django.db import connections, router
 from django.contrib.auth.decorators import login_required
 import datetime, calendar
 from Hotels.models import Rooms
@@ -38,7 +38,8 @@ def reports(request):
 @login_required(login_url="/admin/login")
 def actual_emp(request):
     if request.user.groups.filter(name="replication").exists():
-        with connections["hotels"].cursor() as cursor:
+        connection = connections[router.db_for_read(Rooms)]
+        with connection.cursor() as cursor:
             cursor.execute("""
                 select e.e_id AS "ID", e.e_name AS "ФИО", j.j_name AS "Должность", f.f_name AS "Филиал", w.e_hired AS "Дата приёма"
                 from employees e
@@ -60,7 +61,8 @@ def actual_emp(request):
 @login_required(login_url="/admin/login")
 def fired_emp(request):
     if request.user.groups.filter(name="replication").exists():
-        with connections["hotels"].cursor() as cursor:
+        connection = connections[router.db_for_read(Rooms)]
+        with connection.cursor() as cursor:
             cursor.execute("""
                 select e.e_id AS "ID", e.e_name AS "ФИО", j.j_name AS "Должность", f.f_name AS "Филиал", w.e_hired AS "Дата приёма", w.e_fired AS "Дата увольнения"
                 from employees e
@@ -82,7 +84,8 @@ def fired_emp(request):
 @login_required(login_url="/admin/login")
 def empty_today(request):
     if request.user.groups.filter(name="replication").exists():
-        with connections["hotels"].cursor() as cursor:
+        connection = connections[router.db_for_read(Rooms)]
+        with connection.cursor() as cursor:
             cursor.execute("""
                 select f.f_name AS "Филиал", rtn.rtn_name AS "Тип номера", r.r_id AS "Номер", rt.rt_price AS "Стоимость", rt.rt_capacity AS "Вместимость"
                 from rooms r 
@@ -118,7 +121,8 @@ def bookings5(request):
                     "<head><title>Ошибка</title></head><body><h1>Ошибка</h1><p>Введено некорректное значение, повторите попытку</p>"
                     "<p><a href=\"\">Вернуться</a></p></body>")
             else:
-                with connections["hotels"].cursor() as cursor:
+                connection = connections[router.db_for_read(Rooms)]
+                with connection.cursor() as cursor:
                     cursor.execute(f"""
                     select b.g_id AS "ID гостя", g.g_name AS "ФИО", g.g_phone AS "Телефон", count(*) AS "Количество бронирований"
                     from bookings b 
@@ -151,7 +155,8 @@ def livings5(request):
                     "<head><title>Ошибка</title></head><body><h1>Ошибка</h1><p>Введено некорректное значение, повторите попытку</p>"
                     "<p><a href=\"\">Вернуться</a></p></body>")
             else:
-                with connections["hotels"].cursor() as cursor:
+                connection = connections[router.db_for_read(Rooms)]
+                with connection.cursor() as cursor:
                     cursor.execute(f"""
                     select g.g_id AS "ID гостя", g.g_name AS "ФИО", g.g_phone AS "Телефон", count(*) AS "Количество проживаний"
                     from guests g 
@@ -172,7 +177,8 @@ def livings5(request):
 @login_required(login_url="/admin/login")
 def long_livings(request):
     if request.user.groups.filter(name="replication").exists():
-        with connections["hotels"].cursor() as cursor:
+        connection = connections[router.db_for_read(Rooms)]
+        with connection.cursor() as cursor:
             cursor.execute("""
             select l.l_id AS "ID проживания", r.r_id AS "ID номера", rtn.rtn_name AS "Тип номера", f.f_name AS "Филиал", g.g_id AS "ID гостя", g.g_name AS "ФИО"
 from guests g
@@ -186,7 +192,7 @@ join room_types_names rtn
 			on rt.rtn_id=rtn.rtn_id
 	join filials f
 			on f.f_id=rt.f_id
-	
+
 where l.w_id_arr IS NOT NULL
 	AND CASE WHEN l.w_id_dep IS NOT NULL 
 	then DATE_PART('day', l.l_dep_date - l.l_arr_date) >= 30
@@ -202,7 +208,8 @@ where l.w_id_arr IS NOT NULL
 @login_required(login_url="/admin/login")
 def reg_stat(request):
     if request.user.groups.filter(name="replication").exists():
-        with connections["hotels"].cursor() as cursor:
+        connection = connections[router.db_for_read(Rooms)]
+        with connection.cursor() as cursor:
             cursor.execute("""
             (select e.e_id AS "ID сотрудника", e.e_name AS "ФИО", f.f_name AS "Филиал", count(*) AS "Количество гостей"
             from guests g
@@ -234,7 +241,8 @@ def reg_stat(request):
 @login_required(login_url="/admin/login")
 def livings_stat(request):
     if request.user.groups.filter(name="replication").exists():
-        with connections["hotels"].cursor() as cursor:
+        connection = connections[router.db_for_read(Rooms)]
+        with connection.cursor() as cursor:
             cursor.execute("""
                 select f.f_name AS "Филиал", count(distinct g.g_id) AS "Количество проживаний"
                 from guests g
@@ -258,7 +266,8 @@ def livings_stat(request):
 @login_required(login_url="/admin/login")
 def early_dep(request):
     if request.user.groups.filter(name="replication").exists():
-        with connections["hotels"].cursor() as cursor:
+        connection = connections[router.db_for_read(Rooms)]
+        with connection.cursor() as cursor:
             cursor.execute("""
             select l.l_id AS "ID проживания", l.b_id AS "ID бронирования", g.g_id AS "ID гостя", g.g_name AS "Гость", rtn.rtn_name AS "Тип номера", l.r_id as "Номер", l.l_arr_date AS "Дата заезда", l.l_dep_date AS "Дата выезда (факт)", b.b_dep_date AS "Дата выезда (план)"
             from bookings b
@@ -283,7 +292,8 @@ def early_dep(request):
 @login_required(login_url="/admin/login")
 def arr_dep_stat(request):
     if request.user.groups.filter(name="replication").exists():
-        with connections["hotels"].cursor() as cursor:
+        connection = connections[router.db_for_read(Rooms)]
+        with connection.cursor() as cursor:
             cursor.execute("""
             select COALESCE(arr.e_id, dep.e_id) as "ID сотрудника", COALESCE(arr.w_id, dep.w_id) as "ID работы в филиале", COALESCE(arr.e_name, dep.e_name) as "ФИО",
 	   COALESCE(arr.f_name, dep.f_name) as "Филиал", COALESCE(arr.cnt,0) as "Количество заселений", COALESCE(dep.cnt,0) as "Количество выселений"
@@ -329,7 +339,8 @@ order by 5 desc, 6 desc, 4 desc
 @login_required(login_url="/admin/login")
 def profit(request):
     if request.user.groups.filter(name="replication").exists():
-        with connections["hotels"].cursor() as cursor:
+        connection = connections[router.db_for_read(Rooms)]
+        with connection.cursor() as cursor:
             cursor.execute("""
             select f.f_name as "Филиал", rtn.rtn_name as "Тип номера", l.r_id as "Номер", rt.rt_price AS "Стоимость", SUM(CASE WHEN l.l_dep_date IS NULL 
 	   									THEN DATE_PART('day', current_date - l.l_arr_date)*rt.rt_price
@@ -379,7 +390,8 @@ def rooms_table(request):
         for room in rooms:
             data.append([room, []])
             for day in days[1:]:
-                with connections["hotels"].cursor() as cursor:
+                connection = connections[router.db_for_read(Rooms)]
+                with connection.cursor() as cursor:
                     cursor.execute(f"select is_free_today({room.r_id}, '{day}')")
                     res = [row for row in cursor][0][0]
                     if res:
@@ -428,7 +440,8 @@ def replication(request):
             "two_phase": "Алгоритм двухфазной фиксации",
             "conflicting": "Конфликт"
         }
-        with connections["hotels"].cursor() as cursor:
+        connection = connections[router.db_for_read(Rooms)]
+        with connection.cursor() as cursor:
             cursor.execute("SELECT * FROM pg_replication_slots")
             data = [ReplicationSlot(data) for data in cursor]
             headers = [translate[header.name] for header in cursor.description]
