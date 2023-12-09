@@ -6,6 +6,7 @@
 #   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
+from django.contrib.auth.models import UnicodeUsernameValidator
 
 
 class Bookings(models.Model):
@@ -69,6 +70,20 @@ class Filials(models.Model):
 
 
 class Guests(models.Model):
+    username_validator = UnicodeUsernameValidator()
+
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        null=True,
+        help_text=(
+            "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
+        ),
+        validators=[username_validator],
+        error_messages={
+            "unique": ("A user with that username already exists."),
+        },
+    )
     g_id = models.DecimalField(primary_key=True, max_digits=6, decimal_places=0, verbose_name='ID')
     g_name = models.CharField(max_length=100, verbose_name='ФИО')
     g_gender = models.CharField(max_length=1, verbose_name='Пол')
@@ -84,7 +99,6 @@ class Guests(models.Model):
     class Meta:
         verbose_name = 'гость'
         verbose_name_plural = 'гости'
-        managed = False
         db_table = 'guests'
 
 

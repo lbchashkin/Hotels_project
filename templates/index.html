@@ -1,16 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Сеть гостиниц</title>
-</head>
-<body>
-<h1>Сеть гостиниц</h1>
-<p>
-    <a href="/admin">Администрирование</a>
-</p>
-<p>
-    <a href="/reports">Отчётность</a>
-</p>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="header-bar">
+  <h1>Сеть гостиниц</h1>
+    {% if user.is_authenticated %}
+      <h3>{{ user }}</h3>
+    {% else %}
+    {% endif %}
+</div>
+
+<div class="card-body">
+    {% if user.is_authenticated %}
+    <p>
+        <a href="/logout/">Выход</a>
+    </p>
+    {% else %}
+    <p>
+        <a href="/login/">Вход</a>
+    </p>
+    <p>
+        <a href="/register/">Зарегистрироваться</a>
+    </p>
+    {% endif %}
+    <p>
+        <a href="/bookings">Бронирования</a>
+    </p>
+    <p>
+        <a href="/find_empty_rooms">Найти свободные номера</a>
+    </p>
+    {% if user.is_staff %}
+    <p>
+        <a href="/admin">Администрирование</a>
+    </p>
+    <p>
+        <a href="/reports">Отчётность</a>
+    </p>
+    {% endif %}
+</div>
+
+{% endblock content %}
