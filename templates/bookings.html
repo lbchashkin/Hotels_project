@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content%}
+
+<div class="header-bar">
+  <a href="/">&#8592; Назад</a>
+  <h1>Бронирования</h1>
+  {% if user.is_authenticated %}
+    <h3>{{ user }}</h3>
+  {% else %}
+  {% endif %}
+</div>
+
+<div class="task-list-wrapper">
+  {% for booking in bookings_list %}
+  <div class="task-wrapper">
+    {{ booking.rt.f.f_name }}, {{ booking.rt.rtn.rtn_name }}, {{ booking.rt.rt_capacity }} чел. <span>{{ booking.b_arr_date }} - {{ booking.b_dep_date }}</span>
+  </div>
+  {% empty %}
+  <h3 style="padding: 20px; text-align: center;">Нет бронирований</h3>
+  {% endfor %}
+</div>
+
+
+{% endblock %}

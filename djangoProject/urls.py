@@ -20,6 +20,12 @@ from Hotels import views
 
 urlpatterns = [
     path('', views.main),
+    path('login/', views.login_view),
+    path('register/', views.register_view),
+    path('logout/', views.logout_view),
+    path('bookings/', views.bookings),
+    path('find_empty_rooms/', views.find_empty_rooms),
+    path('book_room/<int:room_id>/<int:arr_year>/<int:arr_month>/<int:arr_day>/<int:dep_year>/<int:dep_month>/<int:dep_day>/', views.book_room),
     path('reports/', views.reports),
     path('reports/actual_emp/', views.actual_emp),
     path('reports/fired_emp/', views.fired_emp),

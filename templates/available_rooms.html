@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="header-bar">
+  <a href="/">&#8592; Назад</a>
+  <h1>Свободные номера</h1>
+    {% if user.is_authenticated %}
+      <h3>{{ user }}</h3>
+    {% else %}
+    {% endif %}
+</div>
+
+<div class="card-body">
+<div style="padding-bottom: 20px;">
+{{ filial }}
+</div>
+<div style="padding-bottom: 20px;">
+с {{ arrival_date }} по {{ departure_date }}
+</div>
+{% if rows %}
+<table>
+    <tr>
+        {% for header in headers %}
+        <th>
+            {{ header }}
+        </th>
+        {% endfor %}
+        <th>
+
+        </th>
+    </tr>
+    {% for row in rows %}
+    <tr>
+        {% for data in row %}
+        <td>{{ data }}</td>
+        {% endfor %}
+        <td><a href="/book_room/{{ row.0 }}/{{ arrival_date | date:"Y/m/d" }}/{{ departure_date | date:"Y/m/d" }}">Забронировать</a></td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<h3>Нет свободных номеров</h3>
+{% endif %}
+
+</div>
+
+{% endblock content %}

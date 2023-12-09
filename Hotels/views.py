@@ -1,12 +1,18 @@
-from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseServerError
+from datetime import date, datetime, time, timezone
+import calendar
+
+from django.shortcuts import render, redirect
+from django.http import HttpResponseBadRequest, HttpResponseForbidden, HttpResponseServerError
 from django.db import connections, router
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
-import datetime, calendar
 from Hotels.models import Rooms
 
+from .models import Bookings, Filials, Guests, Livings, Statuses
+from .forms import GuestForm, FindEmptyRoomsForm
 
-# Create your views here.
 
 def main(request):
     return render(request, "index.html")
@@ -29,10 +35,7 @@ def reports(request):
         ("Репликация", "replication"),
         ("Занятость номеров", "rooms_table")
     ]
-    html = '<p><a href="/">Назад</a></p><br>'
-    for report in rep:
-        html += f'<p><a href="{report[1]}">{report[0]}</a></p>'
-    return HttpResponse(f"<h1>Отчётные формы</h1>{html}")
+    return render(request, 'reports.html', { "reports": rep })
 
 
 @login_required(login_url="/admin/login")
@@ -369,7 +372,7 @@ group by f.f_name, rtn.rtn_name, l.r_id, rt.rt_price
 @login_required(login_url="/admin/login")
 def rooms_table(request):
     if request.user.groups.filter(name="replication").exists():
-        now = datetime.datetime.now()
+        now = datetime.now()
         if request.GET.get("year"):
             year = int(request.GET.get("year"))
         else:
@@ -383,7 +386,7 @@ def rooms_table(request):
             year = int(month_year[0:4])
             month = int(month_year[5:7])
         num_days = calendar.monthrange(year, month)[1]
-        days = [datetime.date(year, month, day).strftime("%d.%m.%Y") for day in range(1, num_days + 1)]
+        days = [date(year, month, day) for day in range(1, num_days + 1)]
         days.insert(0, "Номер")
         rooms = Rooms.objects.all()
         data = []
@@ -392,7 +395,7 @@ def rooms_table(request):
             for day in days[1:]:
                 connection = connections[router.db_for_read(Rooms)]
                 with connection.cursor() as cursor:
-                    cursor.execute(f"select is_free_today({room.r_id}, '{day}')")
+                    cursor.execute(f"select free_today({room.r_id}, '{day}')")
                     res = [row for row in cursor][0][0]
                     if res:
                         data[-1][1].append('free')
@@ -449,3 +452,140 @@ def replication(request):
         return render(request, "replication.html", {"data": data, "headers": headers})
     else:
         return HttpResponseForbidden('<h1>Доступ запрещён</h1><a href="/admin/logout">Выход</a>')
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('/')
+
+    if request.method == 'POST':
+        form = AuthenticationForm(request, request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('/')
+    else:
+        form = AuthenticationForm()
+
+    context = { 'form': form }
+    return render(request, 'login.html', context)
+
+
+def register_view(request):
+    if request.user.is_authenticated:
+        return redirect('/')
+
+    if request.method == 'POST':
+        form = GuestForm(request.POST)
+        if form.is_valid():
+            user = User()
+            user.username = form.cleaned_data['username']
+            user.set_password(form.cleaned_data['password'])
+            user.email = form.cleaned_data['g_mail']
+            guest = Guests(username=user.username)
+            guest.g_id = Guests.objects.order_by('-g_id')[0].g_id + 1 if Guests.objects.order_by('-g_id') else 0;
+            guest.g_name = form.cleaned_data['g_name']
+            guest.g_gender = form.cleaned_data['g_gender']
+            guest.g_born = form.cleaned_data['g_born']
+            guest.g_phone = form.cleaned_data['g_phone']
+            guest.g_mail = form.cleaned_data['g_mail']
+            guest.g_passp = form.cleaned_data['g_passp']
+            user.save()
+            guest.save()
+            login(request, user)
+            return redirect('/')
+    else:
+        form = GuestForm()
+
+    context = { 'form': form }
+    return render(request, 'register.html', context)
+
+
+@login_required(login_url='/admin/login/')
+def logout_view(request):
+    logout(request)
+    return redirect('/')
+
+
+@login_required(login_url='/login/')
+def bookings(request):
+    bookings_list = Bookings.objects.filter(g__username=request.user.username).order_by('-b_id')
+
+    context = {
+        'bookings_list': bookings_list,
+    }
+    return render(request, 'bookings.html', context)
+
+
+@login_required(login_url='/login/')
+def find_empty_rooms(request):
+    if request.method == 'POST':
+        form = FindEmptyRoomsForm(request.POST)
+        if form.is_valid():
+            filial_id = int(form.cleaned_data['filial'])
+            print(filial_id)
+            arrival_date = form.cleaned_data['arrival_date']
+            departure_date = form.cleaned_data['departure_date']
+            with connections["hotels"].cursor() as cursor:
+                cursor.execute('SELECT r_id AS "Номер", rtn_name AS "Тип номера", rt_price AS "Стоимость", rt_capacity AS "Вместимость" FROM free_rooms(%s, %s, %s)', [filial_id, arrival_date, departure_date])
+                rows = cursor.fetchall()
+                headers = [header.name for header in cursor.description]
+
+            context = {
+                'filial': Filials.objects.get(pk=filial_id),
+                'arrival_date': arrival_date,
+                'departure_date': departure_date,
+                'rows': rows,
+                'headers': headers,
+            }
+            return render(request, 'available_rooms.html', context)
+    else:
+        form = FindEmptyRoomsForm()
+
+    context = { 'form': form }
+    return render(request, 'find_empty_rooms.html', context)
+
+
+@login_required(login_url='/admin/login/')
+def book_room(request, room_id: int, arr_year: int, arr_month: int, arr_day: int, dep_year: int, dep_month: int, dep_day: int):
+    room = Rooms.objects.get(pk=room_id)
+    filial = room.f
+    arrival_date = date(arr_year, arr_month, arr_day)
+    departure_date = date(dep_year, dep_month, dep_day)
+
+    if request.method == 'POST':
+        with connections["hotels"].cursor() as cursor:
+            cursor.execute('SELECT r_id AS "Номер", rtn_name AS "Тип номера", rt_price AS "Стоимость", rt_capacity AS "Вместимость" FROM free_rooms(%s, %s, %s) WHERE r_id = %s', [filial.f_id, arrival_date, departure_date, room_id])
+            if not cursor.fetchall():
+                return HttpResponseBadRequest("Уже забронированно")
+
+        booking = Bookings()
+        booking.b_id = Bookings.objects.order_by('-b_id')[0].b_id + 1
+        booking.b_book_date = datetime.now()
+        booking.rt = room.rt
+        booking.g = Guests.objects.filter(username=request.user.username)[0]
+        booking.b_arr_date = arrival_date
+        booking.b_dep_date = departure_date
+        booking.st = Statuses.objects.filter(st_name='Забронировано')[0]
+        living = Livings()
+        living.l_id = Livings.objects.order_by('-l_id')[0].l_id + 1
+        living.b = booking
+        living.rt = booking.rt
+        living.r = room
+        living.g = booking.g
+        living.l_arr_date = datetime.combine(arrival_date, time(0, 0), timezone.utc)
+        living.l_dep_date = datetime.combine(departure_date, time(0, 0), timezone.utc)
+        booking.save()
+        living.save()
+        return redirect('/')
+
+    context = {
+        'room': room,
+        'filial': filial,
+        'arrival_date': arrival_date,
+        'departure_date': departure_date,
+    }
+    return render(request, 'book_room.html', context)

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="header-bar">
+  <a href="/">&#8592; Назад</a>
+  <h1>Отчётные формы</h1>
+</div>
+
+<div class="card-body">
+  {% for report in reports %}
+    <p><a href="{{ report.1 }}">{{ report.0 }}</a></p>
+  {% endfor %}
+</div>
+
+{% endblock content %}

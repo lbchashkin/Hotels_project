@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="header-bar">
+  <a href="/">&#8592; Назад</a>
+  <h1>Бронирование</h1>
+  {% if user.is_authenticated %}
+    <h3>{{ user }}</h3>
+  {% else %}
+  {% endif %}
+</div>
+
+<div class="card-body">
+  <form method="post" action="{{ request.path }}">
+    {% csrf_token %}
+    <p>Вы уверены, что захотите забронировать</p>
+    <p>номер {{ room.r_id }} типа {{ room.rt.rtn }}</p>
+    <p>в филиале {{ filial }} по адресу {{ filial.f_addr }}</p>
+    <p>на срок с {{ arrival_date }} по {{ departure_date }}?</p>
+    <input class="button" type="submit" value="Уверен">
+  </form>
+</div>
+
+{% endblock content %}

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="header-bar">
+  <a href="/">&#8592; Назад</a>
+  <h1>Авторизация</h1>
+</div>
+
+<div class="card-body">
+  <form method="post" action="/login/">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+    <div class="field-wrapper">
+        {{ field.label_tag }}
+        {{ field }}
+        {{ field.errors }}
+        {% if field.help_text %}
+        <div class="helptext">{{ field.help_text|safe }}</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <input class="button" type="submit" value="Авторизироваться">
+  </form>
+  <p>Нет аккаунта? <a href="/register/">Регистраця</a></p>
+</div>
+
+{% endblock content %}
